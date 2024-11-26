@@ -74,6 +74,7 @@ func generateMessages(plugin *protogen.Plugin, opts Options) (err error) {
 		newGeneratedFile := plugin.NewGeneratedFile(filename, ".")
 
 		// 5. Pass the data from our buffer to the plugin newGeneratedFile struct
+		// TODO: Try newGeneratedFile.P() to print instead?
 		write, err := newGeneratedFile.Write(buf.Bytes())
 		if err != nil {
 			log.Println("Error writing generated file:", err)

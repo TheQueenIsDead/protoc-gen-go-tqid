@@ -2,12 +2,9 @@ package pkg
 
 import (
 	"bytes"
-	"io"
-	"log"
-	"os"
-
 	"fmt"
 	"google.golang.org/protobuf/compiler/protogen"
+	"log"
 )
 
 func Generate(plugin *protogen.Plugin) (err error) {
@@ -35,13 +32,7 @@ func Generate(plugin *protogen.Plugin) (err error) {
 
 func generateBoilerplate(plugin *protogen.Plugin) (err error) {
 
-	f, err := os.Open("./pkg/template/main.go")
-	buf, err := io.ReadAll(f)
-	if err != nil {
-		log.Println("Error reading template file:", err)
-		return
-	}
-
+	buf, err := ReadFsFile(Main)
 	file := plugin.NewGeneratedFile("main.go", ".")
 	_, err = file.Write(buf)
 	if err != nil {

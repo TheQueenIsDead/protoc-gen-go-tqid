@@ -1,0 +1,14 @@
+version: v2
+managed:
+  enabled: true
+
+plugins:
+  - remote: buf.build/protocolbuffers/go
+    out: .
+  - remote: buf.build/community/planetscale-vtprotobuf:v0.6.0
+    out: .
+    opt: features=marshal+unmarshal+size
+  - local: protoc-gen-go-tqid
+    out: .
+inputs:
+  - directory: proto

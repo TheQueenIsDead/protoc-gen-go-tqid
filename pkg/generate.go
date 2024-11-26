@@ -77,13 +77,12 @@ func generateMessages(plugin *protogen.Plugin, opts Options) (err error) {
 	// For each protoc file passed in (TODO: Probably set expectations about single files?)
 	for _, file := range plugin.Files {
 
-		var buf bytes.Buffer
+		// Specify the output filename
+		filename := file.GeneratedFilenamePrefix + ".tqid.pb.go"
+		g := plugin.NewGeneratedFile(filename, ".")
 
 		// Generate the package name
-		//log.Println(newGeneratedFile)
-		pkg := fmt.Sprintf("package %s", file.GoPackageName)
-		buf.Write([]byte(pkg))
-		buf.WriteString("\n\n")
+		g.P(fmt.Sprintf("package %s\n\n", file.GoPackageName))
 
 		// For each message add a Foo() method
 		for _, msg := range file.Proto.MessageType {
@@ -91,15 +90,14 @@ func generateMessages(plugin *protogen.Plugin, opts Options) (err error) {
 			fooFuncers := &ast.FuncDecl{
 				Recv: &ast.FieldList{
 					List: []*ast.Field{
-						&ast.Field{
+						{
 							Names: []*ast.Ident{
-								&ast.Ident{
+								{
 									Name: "x",
 								},
 							},
 							Type: &ast.StarExpr{
 								X: &ast.Ident{
-									//Name: "Example",
 									Name: *msg.Name,
 								},
 							},
@@ -113,7 +111,7 @@ func generateMessages(plugin *protogen.Plugin, opts Options) (err error) {
 					Params: &ast.FieldList{},
 					Results: &ast.FieldList{
 						List: []*ast.Field{
-							&ast.Field{
+							{
 								Type: &ast.Ident{
 									Name: "string",
 								},
@@ -127,7 +125,7 @@ func generateMessages(plugin *protogen.Plugin, opts Options) (err error) {
 							Results: []ast.Expr{
 								&ast.BasicLit{
 									Kind:  token.STRING,
-									Value: "\"bar\"",
+									Value: `"bar"`,
 								},
 							},
 						},
@@ -135,29 +133,15 @@ func generateMessages(plugin *protogen.Plugin, opts Options) (err error) {
 				},
 			}
 
-			fset := token.NewFileSet()
-			err = printer.Fprint(&buf, fset, fooFuncers)
+			var buf bytes.Buffer
+			err = printer.Fprint(&buf, token.NewFileSet(), fooFuncers)
 			if err != nil {
 				return err
 			}
-			buf.WriteString("\n\n")
-
+			g.P(buf.String())
+			g.P()
 		}
 
-		// Specify the output filename
-		filename := file.GeneratedFilenamePrefix + ".tqid.pb.go"
-		newGeneratedFile := plugin.NewGeneratedFile(filename, ".")
-
-		// Pass the data from our buffer to the plugin newGeneratedFile struct
-		// TODO: Try newGeneratedFile.P() to print instead?
-		write, err := newGeneratedFile.Write(buf.Bytes())
-		if err != nil {
-			log.Println("Error writing generated file:", err)
-			return err
-		} else if write != len(buf.Bytes()) {
-			log.Println("Error writing generated file: did not write all of them")
-			return ErrBadWrite
-		}
 	}
 
 	return

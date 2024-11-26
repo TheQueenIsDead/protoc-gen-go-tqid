@@ -31,3 +31,7 @@ protoc \
   --go-vtproto_opt=features=marshal+unmarshal+size \
   proto/sample.proto  
 ```
+
+### Further Reading
+
+ - https://astextract.lu4p.xyz/ is very helpful for converting code into native struct representation

@@ -1,4 +1,4 @@
-*.pb.go
+out/*
 .idea
 
 ### Go template

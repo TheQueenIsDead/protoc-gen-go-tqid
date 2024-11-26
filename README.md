@@ -1,12 +1,14 @@
+# protoc-gen-go-tqid
 
+I'm experimenting with buf cli, as well as protoc for generating code based on a proto file definition.
 
-# Requirements
+## Requirements
 
 You can find installation instructions Go, protoc, and prococ-gen-go-grpc [here](https://grpc.io/docs/languages/go/quickstart/)
 
-# Usage
+## Usage
 
-## Buf
+### Buf
 
 Buf is the preferred way to generate code with protoc.
 
@@ -15,7 +17,7 @@ cd example
 buf generate
 ```
 
-## Protoc
+### Protoc
 
 If you prefer to do things manually, the same effect can be achieved with the following
 
@@ -32,6 +34,6 @@ protoc \
   proto/sample.proto  
 ```
 
-### Further Reading
+## Further Reading
 
  - https://astextract.lu4p.xyz/ is very helpful for converting code into native struct representation

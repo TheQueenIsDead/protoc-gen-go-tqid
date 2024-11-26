@@ -7,5 +7,5 @@ const (
 )
 
 func main() {
-	fmt.Println("hello world, big booty flag?")
+	fmt.Println("hello world?")
 }

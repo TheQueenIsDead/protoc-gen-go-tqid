@@ -5,23 +5,24 @@ import (
 	"fmt"
 	"google.golang.org/protobuf/compiler/protogen"
 	"log"
+	"strings"
 )
 
-func Generate(plugin *protogen.Plugin) (err error) {
+func Generate(plugin *protogen.Plugin, opts Options) (err error) {
 
-	err = generateBoilerplate(plugin)
+	err = generateBoilerplate(plugin, opts)
 	if err != nil {
 		log.Println("Error generating boilerplate:", err)
 		return
 	}
 
-	err = generateMessages(plugin)
+	err = generateMessages(plugin, opts)
 	if err != nil {
 		log.Println("Error generating messages:", err)
 		return
 	}
 
-	err = generateServices(plugin)
+	err = generateServices(plugin, opts)
 	if err != nil {
 		log.Println("Error generating services:", err)
 		return
@@ -30,9 +31,11 @@ func Generate(plugin *protogen.Plugin) (err error) {
 	return
 }
 
-func generateBoilerplate(plugin *protogen.Plugin) (err error) {
+func generateBoilerplate(plugin *protogen.Plugin, opts Options) (err error) {
 
 	buf, err := ReadFsFile(Main)
+	repl := strings.Replace(string(buf), `"template"`, fmt.Sprintf(`"%s"`, opts.ServiceName), -1)
+	buf = []byte(repl)
 	file := plugin.NewGeneratedFile("main.go", ".")
 	_, err = file.Write(buf)
 	if err != nil {
@@ -43,7 +46,7 @@ func generateBoilerplate(plugin *protogen.Plugin) (err error) {
 	return
 }
 
-func generateMessages(plugin *protogen.Plugin) (err error) {
+func generateMessages(plugin *protogen.Plugin, opts Options) (err error) {
 
 	// Protoc passes a slice of File structs for us to process
 	for _, file := range plugin.Files {
@@ -84,6 +87,6 @@ func generateMessages(plugin *protogen.Plugin) (err error) {
 	return
 }
 
-func generateServices(plugin *protogen.Plugin) (err error) {
+func generateServices(plugin *protogen.Plugin, opts Options) (err error) {
 	return
 }

@@ -10,5 +10,7 @@ plugins:
     opt: features=marshal+unmarshal+size
   - local: protoc-gen-go-tqid
     out: .
+    opt:
+      - svc=samplesvc
 inputs:
   - directory: proto

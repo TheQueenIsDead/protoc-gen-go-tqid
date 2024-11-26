@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"google.golang.org/protobuf/compiler/protogen"
 	"log"
@@ -73,32 +74,81 @@ func generateBoilerplate(plugin *protogen.Plugin, opts Options) (err error) {
 
 func generateMessages(plugin *protogen.Plugin, opts Options) (err error) {
 
-	// Protoc passes a slice of File structs for us to process
+	// For each protoc file passed in (TODO: Probably set expectations about single files?)
 	for _, file := range plugin.Files {
 
-		// Time to generate code...!
-
-		// 1. Initialise a buffer to hold the generated code
 		var buf bytes.Buffer
 
-		// 2. Write the package name
+		// Generate the package name
 		//log.Println(newGeneratedFile)
 		pkg := fmt.Sprintf("package %s", file.GoPackageName)
 		buf.Write([]byte(pkg))
+		buf.WriteString("\n\n")
 
-		// 3. For each message add our Foo() method
+		// For each message add a Foo() method
 		for _, msg := range file.Proto.MessageType {
-			buf.Write([]byte(fmt.Sprintf(`
-            func (x %s) Foo() string {
-               return "bar"
-            }`, *msg.Name)))
+
+			fooFuncers := &ast.FuncDecl{
+				Recv: &ast.FieldList{
+					List: []*ast.Field{
+						&ast.Field{
+							Names: []*ast.Ident{
+								&ast.Ident{
+									Name: "x",
+								},
+							},
+							Type: &ast.StarExpr{
+								X: &ast.Ident{
+									//Name: "Example",
+									Name: *msg.Name,
+								},
+							},
+						},
+					},
+				},
+				Name: &ast.Ident{
+					Name: "Foo",
+				},
+				Type: &ast.FuncType{
+					Params: &ast.FieldList{},
+					Results: &ast.FieldList{
+						List: []*ast.Field{
+							&ast.Field{
+								Type: &ast.Ident{
+									Name: "string",
+								},
+							},
+						},
+					},
+				},
+				Body: &ast.BlockStmt{
+					List: []ast.Stmt{
+						&ast.ReturnStmt{
+							Results: []ast.Expr{
+								&ast.BasicLit{
+									Kind:  token.STRING,
+									Value: "\"bar\"",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			fset := token.NewFileSet()
+			err = printer.Fprint(&buf, fset, fooFuncers)
+			if err != nil {
+				return err
+			}
+			buf.WriteString("\n\n")
+
 		}
 
-		// 4. Specify the output filename
+		// Specify the output filename
 		filename := file.GeneratedFilenamePrefix + ".tqid.pb.go"
 		newGeneratedFile := plugin.NewGeneratedFile(filename, ".")
 
-		// 5. Pass the data from our buffer to the plugin newGeneratedFile struct
+		// Pass the data from our buffer to the plugin newGeneratedFile struct
 		// TODO: Try newGeneratedFile.P() to print instead?
 		write, err := newGeneratedFile.Write(buf.Bytes())
 		if err != nil {
